@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>App</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="scripts/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+		<link href="scripts/lib/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+	</head>
+
+	<body>
+		<div class="container" data-bind="visible: initialized" style="display: none;">
+			<div class="navbar">
+				<div class="navbar-inner">
+					<a class="brand" href="#home">App</a>
+					<ul class="nav">
+						<li data-bind="css: {active: hello.visible}"><a href="#hello">Hello World</a></li>
+						<li data-bind="css: {active: people.visible}"><a href="#people">People</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- ko with: notifications -->
+			<div id="notifications" data-bind="visible: visible">
+				<div class="alert alert-error" data-bind="visible: error">
+					<button type="button" class="close" data-bind="click: function() {clear('error');}">&times;</button>
+					<span data-bind="text: error"></span>
+				</div>
+				<div class="alert alert-warning" data-bind="visible: warning">
+					<button type="button" class="close" data-bind="click: function() {clear('warning');}">&times;</button>
+					<span data-bind="text: warning"></span>
+				</div>
+				<div class="alert alert-success" data-bind="visible: success">
+					<button type="button" class="close" data-bind="click: function() {clear('success');}">&times;</button>
+					<span data-bind="text: success"></span>
+				</div>
+				<div class="alert alert-info" data-bind="visible: info">
+					<button type="button" class="close" data-bind="click: function() {clear('info');}">&times;</button>
+					<span data-bind="text: info"></span>
+				</div>
+			</div>
+			<!-- /ko -->
+
+			<div class="row" data-bind="visible: home.visible" style="display:none;">
+				<div class="span12">
+					<h1>App Home</h1>
+					<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.</p>
+				</div>
+			</div>
+
+			<div data-bind="visible: hello.visible" style="display:none;">
+				<div class="row">
+					<form class="span12">
+							<label>
+								First
+								<input type="text" data-bind="value: hello.person.first"/>
+							</label>
+							<label>
+								Last
+								<input type="text" data-bind="value: hello.person.last"/>
+							</label>
+							<button class="btn" data-bind="click: hello.save">Save</button>
+							<button class="btn btn-link btn-small" data-bind="click: hello.cancel">Cancel</button>
+					</form>
+				</div>
+
+				<div class="row">
+					<div class="span12">
+						<button class="btn btn-info" data-bind="click: hello.info"><i class="icon-info-sign"></i> Info</button>
+						<button class="btn btn-success" data-bind="click: hello.success"><i class="icon-thumbs-up"></i> Success</button>
+						<button class="btn btn-warning" data-bind="click: hello.warning"><i class="icon-exclamation-sign"></i> Warning</button>
+						<button class="btn btn-danger" data-bind="click: hello.error"><i class="icon-fire"></i> Error</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- ko with: people -->
+			<div data-bind="visible: visible" style="display:none;">
+				<div class="row">
+					<form class="span3">
+					<fieldset>
+						<label>First</label>
+						<input type="text" class="span3" data-bind="value: form.first"/>
+						<label>Last</label>
+						<input type="text" class="span3" data-bind="value: form.last"/>
+						<button type="submit" class="btn pull-right" data-bind="click: add">Add</button>
+					</fieldset>
+					</form>
+					<table class="table table-striped table-bordered span9">
+						<thead>
+							<tr>
+								<th>First</th>
+								<th>Last</th>
+							</tr>
+						</thead>
+						<tbody data-bind="foreach: people">
+							<tr>
+								<td data-bind="text: first"></td>
+								<td data-bind="text: last"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<!-- /ko -->
+		</div>
+
+		<script src="scripts/requireConfig.js"></script>
+		<script data-main="scripts/main.js" src="scripts/require-2.0.5.min.js"></script>
+	</body>
+</html>
