@@ -1,3 +1,7 @@
+/*! tko - v0.1.0 - 2012-12-24
+* https://github.com/bgrohman/tko
+* Copyright (c) 2012 Bryan Grohman; Licensed MIT */
+
 (function(root, factory) {
 	if (typeof define === 'function' && define.amd) {
 		define(['underscore', 'knockout', 'jquery', 'amplify', 'routie', 'bootstrap'], factory);

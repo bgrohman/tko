@@ -18,15 +18,23 @@ module.exports = function(grunt) {
 			files: ['test/**/*.html']
 		},
 		concat: {
-			dist: {
+			latest: {
 				src: ['<banner:meta.banner>', 'src/tko.js'],
-				dest: 'dist/tko-latest.min.js'
+				dest: 'dist/tko-latest.js'
+			},
+			current: {
+				src: ['<banner:meta.banner>', 'src/tko.js'],
+				dest: 'dist/tko-<%= meta.version %>.js'
 			}
 		},
 		min: {
-			dist: {
-				src: ['<banner:meta.banner>', '<config:concat.dist.dest>'],
+			latest: {
+				src: ['<banner:meta.banner>', '<config:concat.latest.dest>'],
 				dest: 'dist/tko-latest.min.js'
+			},
+			current: {
+				src: ['<banner:meta.banner>', '<config:concat.current.dest>'],
+				dest: 'dist/tko-<%= meta.version %>.min.js'
 			}
 		},
 		watch: {
