@@ -11,7 +11,10 @@ define(
 		return tko.Model.extend({
 			urlRoot: '/person',
 			first: ko.observable(),
-			last: ko.observable()
+			last: ko.observable(),
+			fullName: function() {
+				return this.first() + ' ' + this.last()
+			}
 		});
 	}
 );

@@ -13,7 +13,7 @@ define(['underscore', 'knockout', 'models/Person'], function(_, ko, Person) {
 		self.save = function() {
 			app.saveSetting('hello.world.person', self.person.toJS());
 			self.person.save();
-			app.notify('success', 'Your message has been updated.');
+			app.notify('success', 'Hello, ' + self.person.fullName() + '.');
 		};
 
 		self.cancel = function() {
