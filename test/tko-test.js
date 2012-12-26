@@ -68,7 +68,7 @@
 		});
 
 		app.subscribe('app.initialized', function() {
-			equal($('#test1').text(), 'foo', 'bindings applied');
+			equal(app.test1(), 'foo');
 			start();
 		});
 	});
@@ -145,13 +145,20 @@
 
 	asyncTest('routing', function() {
 		function VM1(app) {
-			this.visible = ko.observable(false);
+			this.foo = ko.observable('foo');
+			this.view = '<p id="vm1" data-bind="text: foo"></p>';
+		}
+
+		function VM2(app) {
+			this.foo = ko.observable('bar');
+			this.view = '<p id="vm2" data-bind="text: foo"></p>';
 		}
 
 		var app = new tko.App({
+			$root: $('#routing-root'),
 			pages: [
-				{id: 'hello', name: 'hello', route: 'hello', ViewModel: VM1},
-				{id: 'world', name: 'world', route: 'world', ViewModel: VM1}
+				{name: 'hello', route: 'hello', ViewModel: VM1, isDefault: true},
+				{name: 'world', route: 'world', ViewModel: VM2}
 			],
 			routes: {
 				'foo': function() {
@@ -166,15 +173,18 @@
 			}
 		});
 
+		equal($('#vm1').text(), 'foo', 'page view model data binding works');
+		equal($('#vm2').text(), 'bar', 'page view model data binding works');
+
 		app.navigate('hello');
 		setTimeout(function() {
-			ok(app.pages.hello.visible(), 'correct page is visible');
-			ok(!app.pages.world.visible(), 'other pages are not visible');
+			ok(app.getPage('hello').visible(), 'correct page is visible');
+			ok(!app.getPage('world').visible(), 'other pages are not visible');
 
 			app.navigate('world');
 			setTimeout(function() {
-				ok(app.pages.world.visible(), 'correct page is visible');
-				ok(!app.pages.hello.visible(), 'other pages are not visible');
+				ok(app.getPage('world').visible(), 'correct page is visible');
+				ok(!app.getPage('hello').visible(), 'other pages are not visible');
 
 				setTimeout(function() {
 					app.navigate('foo');

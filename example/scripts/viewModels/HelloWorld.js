@@ -1,11 +1,11 @@
-define(['underscore', 'knockout', 'models/Person'], function(_, ko, Person) {
+define(['underscore', 'knockout', 'models/Person', 'text!views/hello.html'], function(_, ko, Person, view) {
 	"use strict";
 
 	return function HelloWorld(app) {
 		var self = this,
 			savedPersonData = app.retrieveSetting('hello.world.person');
 
-		self.visible = ko.observable(false);
+		self.view = view;
 
 		self.person = new Person();
 		self.person.setProperties(savedPersonData);

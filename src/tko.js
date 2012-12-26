@@ -8,6 +8,25 @@
 }(this, function(_, ko, $, amplify, routie) {
 	"use strict";
 
+	var templates = {
+		'nav': [
+			'<div class="navbar">',
+				'<div class="navbar-inner">',
+					'<!-- ko if: defaultPage -->',
+						'<a class="brand" data-bind="text: defaultPage().name, attr: {href: defaultPage().href}"></a>',
+					'<!-- /ko -->',
+					'<ul class="nav" data-bind="foreach: pages">',
+						'<!-- ko ifnot: isDefault -->',
+							'<li data-bind="if: !isDefault(), css: {active: visible}">',
+								'<a data-bind="text: name, attr: {href: href}"></a>',
+							'</li>',
+						'<!-- /ko -->',
+					'</ul>',
+				'</div>',
+			'</div>'
+		].join('')
+	};
+
 	/**
 	 * Base Model constructor. Should not be used directly. Use Model.extend
 	 * to create new constructors.
@@ -182,12 +201,26 @@
 	 * View model for notifications.
 	 */
 	function Notifications(app) {
-		var self = this;
+		var self = this,
+			types = ['error', 'warning', 'success', 'info'],
+			typeTemplate = [
+				'<% _.each(types, function(type) { %>',
+					'<div class="alert alert-<%= type %>" data-bind="visible: <%= type %>">',
+						'<button type="button" class="close" data-bind="click: function() {clear(\'<%= type %>\');}">&times;</button>',
+						'<span data-bind="text: <%= type %>"></span>',
+					'</div>',
+				'<% }) %>'
+			].join('');
 
-		self.error = ko.observable();
-		self.warning = ko.observable();
-		self.success = ko.observable();
-		self.info = ko.observable();
+		self.template = [
+			'<div id="notifications" data-bind="visible: visible">',
+				_.template(typeTemplate, {types: types}),
+			'</div>'
+		].join('');
+
+		_.each(types, function(type) {
+			self[type] = ko.observable();
+		});
 
 		self.clear = function(type) {
 			if (_.has(self, type)) {
@@ -210,10 +243,11 @@
 	function PageViewModel(app, page) {
 		var self = this;
 
-		self.id = ko.observable(page.id);
 		self.isDefault = ko.observable(page.isDefault);
+		self.visible = ko.observable(false);
 		self.name = ko.observable(page.name);
 		self.route = ko.observable(page.route);
+
 		self.href = ko.computed(function() {
 			return '#' + self.route();
 		});
@@ -227,13 +261,19 @@
 	function App(def) {
 		var self = this,
 			initialized = false,
-			pageViewModels = [],
 			notifyTimeouts = {};
 
+		self.$root = $('#root');
 		self.defaultPage = ko.observable();
-		self.pages = {};
+		self.pages = [];
 		self.navLinks = [];
 		self.notifications = new Notifications(self);
+
+		self.getPage = function(name) {
+			return _.find(self.pages, function(vm) {
+				return vm.name() === name;
+			});
+		};
 
 		self.notify = function(type, msg, timeout) {
 			if (_.has(self.notifications, type)) {
@@ -304,15 +344,19 @@
 		}
 
 		function buildPages() {
+			var $pages;
+			
 			if (_.isArray(def.pages)) {
-				_.each(def.pages, function(page) {
-					var viewModel = new PageViewModel(self, page);
-					_.extend(viewModel, new page.ViewModel(self));
+				$pages = $('<div id="pages"></div>');
 
-					self.pages[page.id] = viewModel;
-					if (!viewModel.isDefault()) {
-						self.navLinks.push(viewModel);
-					}
+				self.$root.append($pages);
+
+				_.each(def.pages, function(page) {
+					var viewModel = new PageViewModel(self, page),
+						$page;
+
+					_.extend(viewModel, new page.ViewModel(self));
+					self.pages.push(viewModel);
 
 					self.route(page.route, function() {
 						_.each(self.pages, function(vm, key) {
@@ -324,6 +368,10 @@
 					if (page.isDefault) {
 						self.defaultPage(viewModel);
 					}
+
+					$page = $('<div data-bind="visible: visible">' + viewModel.view + '</div>');
+					$pages.append($page);
+					ko.applyBindings(viewModel, $page[0]);
 				});
 			}
 		}
@@ -338,6 +386,19 @@
 			}
 		}
 
+		function buildNav() {
+			var template = templates.nav,
+				$el = $(template);
+
+			self.$root.prepend($el);
+		}
+
+		function buildNotifications() {
+			var $el = $(self.notifications.template);
+			self.notifications.$element = $el;
+			self.$root.prepend($el);
+		}
+
 		function init() {
 			_.each(def, function(val, key) {
 				if (key !== 'pages' && key !== 'routes') {
@@ -345,12 +406,17 @@
 				}
 			});
 
+			buildNotifications();
+			buildNav();
 			buildPages();
 			buildRoutes();
 
 			$(function() {
-				ko.applyBindings(self);
+				ko.applyBindings(self, self.$root.find('.navbar')[0]);
+				ko.applyBindings(self.notifications, self.$root.find('#notifications')[0]);
 				applyRoute();
+				self.$root.show();
+
 				initialized = true;
 				self.publish('app.initialized');
 			});

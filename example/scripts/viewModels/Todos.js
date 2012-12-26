@@ -1,4 +1,4 @@
-define(['underscore', 'knockout', 'models/Todo'], function(_, ko, Todo) {
+define(['underscore', 'knockout', 'models/Todo', 'text!views/todos.html'], function(_, ko, Todo, view) {
 	"use strict";
 
 	return function Todos(app) {
@@ -9,7 +9,7 @@ define(['underscore', 'knockout', 'models/Todo'], function(_, ko, Todo) {
 				{label: 'Walk the dog', priority: 2}
 			];
 
-		self.visible = ko.observable(false);
+		self.view = view;
 
 		self.todos = ko.observableArray(_.map(rawTodos, function(t) {
 			return new Todo(t);
@@ -81,6 +81,7 @@ define(['underscore', 'knockout', 'models/Todo'], function(_, ko, Todo) {
 				priority: getHighestPriority() + 1
 			});
 			self.todos.push(t);
+			t.save();
 
 			app.notify('success', '"' + t.label() + '" added.', 5000);
 			self.form.label('');

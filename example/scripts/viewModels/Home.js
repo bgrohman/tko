@@ -1,9 +1,8 @@
-define(['knockout'], function(ko) {
+define(['knockout', 'text!views/home.html'], function(ko, view) {
 	"use strict";
 
 	return function Home(app) {
 		var self = this;
-
-		self.visible = ko.observable(false);
+		self.view = view;
 	};
 });
