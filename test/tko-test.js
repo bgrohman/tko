@@ -6,7 +6,7 @@
 		_ = globals._,
 		ko = globals.ko,
 		tko = globals.tko,
-		idCount = 0,
+		idCount = 1,
 		postCount = 0,
 		putCount = {},
 		deleteCount = {},
@@ -18,7 +18,8 @@
 
 		if (options.url.substring(0, 7) === '/person') {
 			if (options.type === 'POST') {
-				options.data.id = ++idCount;
+				options.data.id = idCount;
+				idCount += 1;
 				postCount += 1;
 				
 				_.defer(function() {
@@ -28,9 +29,9 @@
 				id = options.url.substr(8);
 
 				if (_.isUndefined(putCount[id])) {
-					putCount['' + id] = 0;
+					putCount[id] = 0;
 				}
-				putCount['' + id] += 1;
+				putCount[id] += 1;
 
 				_.defer(function() {
 					deferred.resolve(options.data);
@@ -39,9 +40,9 @@
 				id = options.url.substr(8);
 
 				if (_.isUndefined(deleteCount[id])) {
-					deleteCount['' + id] = 0;
+					deleteCount[id] = 0;
 				}
-				deleteCount['' + id] += 1;
+				deleteCount[id] += 1;
 
 				_.defer(function() {
 					deferred.resolve(options.data);
