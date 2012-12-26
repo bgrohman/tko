@@ -11,10 +11,11 @@
 		<div class="container" data-bind="visible: initialized" style="display: none;">
 			<div class="navbar">
 				<div class="navbar-inner">
-					<a class="brand" href="#home">App</a>
-					<ul class="nav">
-						<li data-bind="css: {active: hello.visible}"><a href="#hello">Hello World</a></li>
-						<li data-bind="css: {active: todos.visible}"><a href="#todos">Todos</a></li>
+					<a class="brand" data-bind="text: defaultPage().name, attr: {href: defaultPage().href}"></a>
+					<ul class="nav" data-bind="foreach: navLinks">
+						<li data-bind="css: {active: visible}">
+							<a data-bind="text: name, attr: {href: href}"></a>
+						</li>
 					</ul>
 				</div>
 			</div>
@@ -40,41 +41,40 @@
 			</div>
 			<!-- /ko -->
 
-			<div class="row" data-bind="visible: home.visible" style="display:none;">
+			<div class="row" data-bind="visible: pages.home.visible" style="display:none;">
 				<div class="span12">
 					<h1>App Home</h1>
 					<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.</p>
 				</div>
 			</div>
 
-			<div data-bind="visible: hello.visible" style="display:none;">
+			<div data-bind="visible: pages.hello.visible, with: pages.hello" style="display:none;">
 				<div class="row">
 					<form class="span12">
 							<label>
 								First
-								<input type="text" data-bind="value: hello.person.first"/>
+								<input type="text" data-bind="value: person.first"/>
 							</label>
 							<label>
 								Last
-								<input type="text" data-bind="value: hello.person.last"/>
+								<input type="text" data-bind="value: person.last"/>
 							</label>
-							<button class="btn" data-bind="click: hello.save">Save</button>
-							<button class="btn btn-link btn-small" data-bind="click: hello.cancel">Cancel</button>
+							<button class="btn" data-bind="click: save">Save</button>
+							<button class="btn btn-link btn-small" data-bind="click: cancel">Cancel</button>
 					</form>
 				</div>
 
 				<div class="row">
 					<div class="span12">
-						<button class="btn btn-info" data-bind="click: hello.info"><i class="icon-info-sign"></i> Info</button>
-						<button class="btn btn-success" data-bind="click: hello.success"><i class="icon-thumbs-up"></i> Success</button>
-						<button class="btn btn-warning" data-bind="click: hello.warning"><i class="icon-exclamation-sign"></i> Warning</button>
-						<button class="btn btn-danger" data-bind="click: hello.error"><i class="icon-fire"></i> Error</button>
+						<button class="btn btn-info" data-bind="click: info"><i class="icon-info-sign"></i> Info</button>
+						<button class="btn btn-success" data-bind="click: success"><i class="icon-thumbs-up"></i> Success</button>
+						<button class="btn btn-warning" data-bind="click: warning"><i class="icon-exclamation-sign"></i> Warning</button>
+						<button class="btn btn-danger" data-bind="click: error"><i class="icon-fire"></i> Error</button>
 					</div>
 				</div>
 			</div>
 
-			<!-- ko with: todos -->
-			<div data-bind="visible: visible" style="display:none;">
+			<div data-bind="visible: pages.todos.visible, with: pages.todos" style="display:none;">
 				<div class="row">
 					<form class="span3">
 					<fieldset>
@@ -105,7 +105,6 @@
 					</table>
 				</div>
 			</div>
-			<!-- /ko -->
 		</div>
 
 		<script src="scripts/requireConfig.js"></script>
