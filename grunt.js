@@ -4,7 +4,7 @@ module.exports = function(grunt) {
 	// Project configuration.
 	grunt.initConfig({
 		meta: {
-			version: '0.1.0',
+			version: '0.2.0',
 			banner: '/*! tko - v<%= meta.version %> - ' +
 					'<%= grunt.template.today("yyyy-mm-dd") %>\n' +
 					'* https://github.com/bgrohman/tko\n' +
@@ -53,7 +53,8 @@ module.exports = function(grunt) {
 				undef: true,
 				boss: true,
 				eqnull: true,
-				browser: true
+				browser: true,
+				smarttabs: true
 			},
 			globals: {
 				define: true,
