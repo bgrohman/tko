@@ -13,7 +13,7 @@ define(
 			first: ko.observable(),
 			last: ko.observable(),
 			fullName: function() {
-				return this.first() + ' ' + this.last()
+				return this.first() + ' ' + this.last();
 			}
 		});
 	}
