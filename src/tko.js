@@ -1,10 +1,12 @@
 (function(root, factory) {
+	"use strict";
 	if (typeof define === 'function' && define.amd) {
 		define(['underscore', 'knockout', 'jquery', 'amplify', 'routie', 'bootstrap'], factory);
 	} else {
 		root.tko = factory(root._, root.ko, root.$, root.amplify, root.routie);
 	}
 }(this, function(_, ko, $, amplify, routie) {
+	"use strict";
 
 	/**
 	 * Base Model constructor. Should not be used directly. Use Model.extend
@@ -203,16 +205,34 @@
 	}
 
 	/**
+	 * Base view model for pages.
+	 */
+	function PageViewModel(app, page) {
+		var self = this;
+
+		self.id = ko.observable(page.id);
+		self.isDefault = ko.observable(page.isDefault);
+		self.name = ko.observable(page.name);
+		self.route = ko.observable(page.route);
+		self.href = ko.computed(function() {
+			return '#' + self.route();
+		});
+	}
+
+	/**
 	 * Creates a new App.
 	 * @param next function to call during initialization with 'this' set to
 	 * the new App.
 	 */
-	function App(next) {
+	function App(def) {
 		var self = this,
+			initialized = false,
 			pageViewModels = [],
-			defaultPageRoute,
 			notifyTimeouts = {};
 
+		self.defaultPage = ko.observable();
+		self.pages = {};
+		self.navLinks = [];
 		self.notifications = new Notifications(self);
 
 		self.notify = function(type, msg, timeout) {
@@ -236,7 +256,11 @@
 		};
 
 		self.subscribe = function(topic, callback) {
-			return amplify.subscribe(topic, callback);
+			if (topic === 'app.initialized' && initialized) {
+				callback();
+			} else {
+				return amplify.subscribe(topic, callback);
+			}
 		};
 
 		self.unsubscribe = function(topic, callback) {
@@ -259,21 +283,6 @@
 			routie(route);
 		};
 
-		self.page = function(name, viewModel, isDefault) {
-			pageViewModels.push(viewModel);
-
-			self.route(name, function() {
-				_.each(pageViewModels, function(vm) {
-					vm.visible(false);
-				});
-				viewModel.visible(true);
-			});
-
-			if (isDefault) {
-				defaultPageRoute = name;
-			}
-		};
-
 		function applyRoute() {
 			var hash = window.location.hash,
 				route,
@@ -289,19 +298,60 @@
 				}
 			}
 
-			if (useDefault && _.isString(defaultPageRoute)) {
-				self.navigate(defaultPageRoute);
+			if (useDefault && !_.isUndefined(self.defaultPage())) {
+				self.navigate(self.defaultPage().route());
+			}
+		}
+
+		function buildPages() {
+			if (_.isArray(def.pages)) {
+				_.each(def.pages, function(page) {
+					var viewModel = new PageViewModel(self, page);
+					_.extend(viewModel, new page.ViewModel(self));
+
+					self.pages[page.id] = viewModel;
+					if (!viewModel.isDefault()) {
+						self.navLinks.push(viewModel);
+					}
+
+					self.route(page.route, function() {
+						_.each(self.pages, function(vm, key) {
+							vm.visible(false);
+						});
+						viewModel.visible(true);
+					});
+
+					if (page.isDefault) {
+						self.defaultPage(viewModel);
+					}
+				});
+			}
+		}
+
+		function buildRoutes() {
+			if (_.isObject(def.routes)) {
+				_.each(def.routes, function(handler, route) {
+					self.route(route, function() {
+						handler.apply(self, arguments);
+					});
+				});
 			}
 		}
 
 		function init() {
-			if (_.isFunction(next)) {
-				next.call(self);
-			}
+			_.each(def, function(val, key) {
+				if (key !== 'pages' && key !== 'routes') {
+					self[key] = val;
+				}
+			});
+
+			buildPages();
+			buildRoutes();
 
 			$(function() {
 				ko.applyBindings(self);
 				applyRoute();
+				initialized = true;
 				self.publish('app.initialized');
 			});
 		}

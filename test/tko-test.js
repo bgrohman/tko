@@ -2,7 +2,11 @@
 (function(globals) {
 	"use strict";
 
-	var idCount = 0,
+	var $ = globals.$, 
+		_ = globals._,
+		ko = globals.ko,
+		tko = globals.tko,
+		idCount = 0,
 		postCount = 0,
 		putCount = {},
 		deleteCount = {},
@@ -57,31 +61,25 @@
 	};
 
 	module('tko.app');
-	test('initialization', function() {
-		var app = new tko.App(function() {
-			var self = this;
-			
-			ok(true, 'the application init function is called');
-
-			self.test1 = ko.observable('foo');
+	asyncTest('initialization', function() {
+		var app = new tko.App({
+			test1: ko.observable('foo')
 		});
 
-		$(function() {
+		app.subscribe('app.initialized', function() {
 			equal($('#test1').text(), 'foo', 'bindings applied');
+			start();
 		});
 	});
 
 	asyncTest('notifications', function() {
-		var app = new tko.App(function() {
-			var self = this;
-
-			self.foo = function(x) {
-				self.notify('info', x);
-			};
-
-			self.bar = function(x) {
-				self.notify('success', x, 3000);
-			};
+		var app = new tko.App({
+			foo: function(x) {
+				this.notify('info', x);
+			},
+			bar: function(x) {
+				this.notify('success', x, 3000);
+			}
 		});
 
 		app.foo('foo');
@@ -98,48 +96,44 @@
 	});
 
 	test('settings', function() {
-		var app = new tko.App(function() {
-			var self = this;
+		var app = new tko.App({});
 
-			self.saveSetting('foo', 'bar');
-			equal(self.retrieveSetting('foo'), 'bar', 'retrieve saved setting');
+		app.saveSetting('foo', 'bar');
+		equal(app.retrieveSetting('foo'), 'bar', 'retrieve saved setting');
 
-			self.saveSetting('foo', 'baz');
-			equal(self.retrieveSetting('foo'), 'baz', 'overwrite saved setting');
-		});
+		app.saveSetting('foo', 'baz');
+		equal(app.retrieveSetting('foo'), 'baz', 'overwrite saved setting');
 	});
 
 	asyncTest('pub/sub', function() {
 		var fooCount = 0,
+			initSub,
 			sub,
 			app;
+
+		app = new tko.App({});
 	
-		app = new tko.App(function() {
-			var self = this,
-				initSub;
+		sub = app.subscribe('foo', function() {
+			fooCount += 1;
+			equal(fooCount, 1, 'subscription received');
+		});
+		app.publish('foo');
 
-			sub = self.subscribe('foo', function() {
-				fooCount += 1;
-				equal(fooCount, 1, 'subscription received');
-			});
-			self.publish('foo');
+		app.unsubscribe('foo', sub);
+		app.publish('foo');
+		setTimeout(function() {
+			equal(fooCount, 1, 'unsubscribe works');
+			start();
+		}, 2000);
 
-			self.unsubscribe('foo', sub);
-			self.publish('foo');
-			setTimeout(function() {
-				equal(fooCount, 1, 'unsubscribe works');
-				start();
-			}, 2000);
+		app.subscribe('bar', function(msg) {
+			equal(msg.foo, 'baz', 'subscription receives messages');
+		});
+		app.publish('bar', {foo: 'baz'});
 
-			self.subscribe('bar', function(msg) {
-				equal(msg.foo, 'baz', 'subscription receives messages');
-			});
-			self.publish('bar', {foo: 'baz'});
-
-			initSub = self.subscribe('app.initialized', function() {
-				ok(true, 'initialized message received');
-				self.unsubscribe('app.initialized', initSub);
-			});
+		initSub = app.subscribe('app.initialized', function() {
+			ok(true, 'initialized message received');
+			app.unsubscribe('app.initialized', initSub);
 		});
 
 		sub = app.subscribe('app.initialized', function() {
@@ -149,43 +143,44 @@
 	});
 
 	asyncTest('routing', function() {
-		var app = new tko.App(function() {
-			var self = this;
+		function VM1(app) {
+			this.visible = ko.observable(false);
+		}
 
-			self.vm1 = {
-				visible: ko.observable(false)
-			};
-			self.vm2 = {
-				visible: ko.observable(false)
-			};
-			self.page('hello', self.vm1);
-			self.page('world', self.vm2);
-
-			self.route('foo', function() {
-				ok(true, 'basic route works');
-			});
-
-			self.route('bar/:baz', function(baz) {
-				ok(true, 'route with param works');
-				equal(baz, 'baz', 'route with param has correct param value');
-				start();
-				self.navigate('');
-			});
+		var app = new tko.App({
+			pages: [
+				{id: 'hello', name: 'hello', route: 'hello', ViewModel: VM1},
+				{id: 'world', name: 'world', route: 'world', ViewModel: VM1}
+			],
+			routes: {
+				'foo': function() {
+					ok(true, 'basic route works');
+				},
+				'bar/:baz': function(baz) {
+					ok(true, 'route with param works');
+					equal(baz, 'baz', 'route with param has correct param value');
+					start();
+					this.navigate('');
+				}
+			}
 		});
 
 		app.navigate('hello');
 		setTimeout(function() {
-			ok(app.vm1.visible(), 'correct page is visible');
-			ok(!app.vm2.visible(), 'other pages are not visible');
+			ok(app.pages.hello.visible(), 'correct page is visible');
+			ok(!app.pages.world.visible(), 'other pages are not visible');
 
 			app.navigate('world');
 			setTimeout(function() {
-				ok(app.vm2.visible(), 'correct page is visible');
-				ok(!app.vm1.visible(), 'other pages are not visible');
+				ok(app.pages.world.visible(), 'correct page is visible');
+				ok(!app.pages.hello.visible(), 'other pages are not visible');
 
 				setTimeout(function() {
 					app.navigate('foo');
-					app.navigate('bar/baz');
+
+					setTimeout(function() {
+						app.navigate('bar/baz');
+					}, 250);
 				}, 250);
 			}, 250);
 		}, 250);
@@ -203,7 +198,9 @@
 	});
 
 	test('basics', function() {
-		var obj = new Person();
+		var obj = new Person(),
+			obj2;
+
 		ok(obj.first, 'new model instances have correct observables');
 		ok(obj.last, 'new model instances have correct observables');
 		equal(obj.urlRoot, '/person', 'new model instances have correct properties');
@@ -218,7 +215,7 @@
 		equal(obj.last(), 'G', 'constructing a model with properties');
 		equal(obj.log(), 'Bryan G', 'model functions work');
 
-		var obj2 = new Person({
+		obj2 = new Person({
 			first: 'John',
 			last: 'Doe'
 		});

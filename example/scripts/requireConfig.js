@@ -6,7 +6,7 @@
 	App.requireConfig = function(baseUrl) {
 		var config = {
 			paths: {
-				'tko': '../../dist/tko-latest.min',
+				'tko': '../../src/tko',
 				'amplify': 'lib/amplify-1.1.min',
 				'bootstrap': 'lib/bootstrap/js/bootstrap.min',
 				'jquery': 'lib/jquery-1.8.3.min',
