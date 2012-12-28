@@ -10,7 +10,11 @@
 		postCount = 0,
 		putCount = {},
 		deleteCount = {},
-		Person;
+		Person,
+		People,
+		SortedPeople,
+		personList,
+		rawPersonList;
 
 	$.ajax = function(options) {
 		var deferred = $.Deferred(),
@@ -203,7 +207,7 @@
 		urlRoot: '/person',
 		first: ko.observable(),
 		last: ko.observable(),
-		log: function() {
+		full: function() {
 			return this.first() + ' ' + this.last();
 		}
 	});
@@ -215,7 +219,7 @@
 		ok(obj.first, 'new model instances have correct observables');
 		ok(obj.last, 'new model instances have correct observables');
 		equal(obj.urlRoot, '/person', 'new model instances have correct properties');
-		ok(_.isFunction(obj.log), 'new model instances have correct functions');
+		ok(_.isFunction(obj.full), 'new model instances have correct functions');
 		ok(!obj.id, 'new models do not have an id');
 
 		obj = new Person({
@@ -224,7 +228,7 @@
 		});
 		equal(obj.first(), 'Bryan', 'constructing a model with properties');
 		equal(obj.last(), 'G', 'constructing a model with properties');
-		equal(obj.log(), 'Bryan G', 'model functions work');
+		equal(obj.full(), 'Bryan G', 'model functions work');
 
 		obj2 = new Person({
 			first: 'John',
@@ -232,8 +236,8 @@
 		});
 		equal(obj.first(), 'Bryan', 'constructing a model with properties');
 		equal(obj2.first(), 'John', 'constructing a model with properties');
-		equal(obj.log(), 'Bryan G', 'model functions work');
-		equal(obj2.log(), 'John Doe', 'model functions work');
+		equal(obj.full(), 'Bryan G', 'model functions work');
+		equal(obj2.full(), 'John Doe', 'model functions work');
 	});
 
 	test('setting properties', function() {
@@ -329,5 +333,79 @@
 			equal(person.id(), 999, 'fetching a model does not change the id');
 			start();
 		});
+	});
+
+	module('tko.Collection');
+
+	personList = [
+		new Person({id: 11, first: 'John', last: 'Doe'}),
+		new Person({id: 22, first: 'Jane', last: 'Doe'}),
+		new Person({id: 33, first: 'Bryan', last: 'G'})
+	];
+
+	rawPersonList = [
+		{id: 11, first: 'John', last: 'Doe'},
+		{id: 22, first: 'Jane', last: 'Doe'},
+		{id: 33, first: 'Bryan', last: 'G'}
+	];
+
+	People = tko.Collection.extend({
+		model: Person,
+		url: '/people'
+	});
+
+	SortedPeople = tko.Collection.extend({
+		model: Person,
+		url: '/people',
+		foo: 'bar',
+		length: 999,
+		sortBy: 'first'
+	});
+
+	test('basics', function() {
+		var people = new People(),
+			people2,
+			sortedPeople;
+
+		equal(people.model, Person, 'new collections have the correct Model');
+		equal(people.url, '/people', 'new collections have the correct url');
+		equal(people.values().length, 0, 'new collections are empty');
+		equal(people.length(), 0, 'new collections are empty');
+
+		people2 = new People(personList);
+		equal(people.length(), 0, 'new collections do not affect existing Collections');
+		equal(people2.values().length, 3, 'collection initialized with values has correct length');
+		equal(people2.length(), 3, 'collection initialized with values has correct length');
+		deepEqual(people2.at(0), personList[0], 'collection members can be retrieved by index');
+		deepEqual(people2.at(1), personList[1], 'collection members can be retrieved by index');
+		deepEqual(people2.at(2), personList[2], 'collection members can be retrieved by index');
+		ok(_.isUndefined(people2.at(3)), 'collection members can be retrieved by index');
+		deepEqual(people2.get(11), personList[0], 'collection members can be retrieved by id');
+		deepEqual(people2.get(22), personList[1], 'collection members can be retrieved by id');
+		deepEqual(people2.get(33), personList[2], 'collection members can be retrieved by id');
+		ok(_.isUndefined(people2.get(0)), 'collection members can be retrieved by id');
+		deepEqual(people2.toJS(), rawPersonList, 'collections can be converted to plain objects');
+	});
+
+	test('sorting', function() {
+		var sortedPeople = new SortedPeople(personList);
+		ok(_.isUndefined(sortedPeople.foo), 'only certain properties can be set');
+		equal(sortedPeople.length(), 3, 'collection initialized with values has correct length');
+		deepEqual(sortedPeople.at(0), personList[2], 'collections can be sorted initially');
+		deepEqual(sortedPeople.at(1), personList[0], 'collections can be sorted initially');
+		deepEqual(sortedPeople.at(2), personList[1], 'collections can be sorted initially');
+		sortedPeople.sortBy('last');
+		deepEqual(sortedPeople.at(0), personList[0], 'collections can be re-sorted');
+		deepEqual(sortedPeople.at(1), personList[1], 'collections can be re-sorted');
+		deepEqual(sortedPeople.at(2), personList[2], 'collections can be re-sorted');
+		sortedPeople.sortBy(function(a, b) {
+			var av = a.full(),
+				bv = b.full();
+			
+			return av === bv ? 0 : (av < bv ? -1 : 1);
+		});
+		deepEqual(sortedPeople.at(0), personList[2], 'collections can be sorted using custom comparators');
+		deepEqual(sortedPeople.at(1), personList[0], 'collections can be sorted using custom comparators');
+		deepEqual(sortedPeople.at(2), personList[1], 'collections can be sorted using custom comparators');
 	});
 }(window));

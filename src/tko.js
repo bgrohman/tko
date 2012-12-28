@@ -32,8 +32,10 @@
 	 * to create new constructors.
 	 */
 	function Model() {
-		this.urlRoot = null;
-		this.id = null;
+		var self = this;
+
+		self.urlRoot = null;
+		self.id = null;
 
 		/**
 		 * Copies the properties of the from object to this Model. Only this
@@ -41,9 +43,8 @@
 		 * already been set.
 		 * @param from the object from which to copy properties
 		 */
-		this.setProperties = function(from) {
-			var self = this,
-				fromObj,
+		self.setProperties = function(from) {
+			var fromObj,
 				selfVal,
 				fromVal;
 
@@ -76,9 +77,8 @@
 		 * Returns a plain object without observables representing this Model.
 		 * @returns a plain object
 		 */
-		this.toJS = function() {
-			var self = this,
-				obj = {};
+		self.toJS = function() {
+			var obj = {};
 
 			_.each(_.keys(self), function(key) {
 				if (ko.isObservable(self[key])) {
@@ -93,9 +93,8 @@
 		 * Saves or updates this model. Generates a POST or PUT using this 
 		 * Model's urlRoot.
 		 */
-		this.save = function() {
-			var self = this,
-				id,
+		self.save = function() {
+			var id,
 				url,
 				requestType,
 				request;
@@ -130,9 +129,8 @@
 		 * Deletes this Model. Generates a DELETE request using this Model's 
 		 * urlRoot.
 		 */
-		this.destroy = function() {
-			var self = this,
-				id;
+		self.destroy = function() {
+			var id;
 
 			if (!_.isUndefined(self.id)) {
 				id = ko.isObservable(self.id) ? self.id() : self.id;
@@ -152,9 +150,8 @@
 		 * request using this Model's urlRoot and sets the Model's properties
 		 * using the response.
 		 */
-		this.fetch = function() {
-			var self = this,
-				request,
+		self.fetch = function() {
+			var request,
 				id;
 
 			if (!_.isUndefined(self.id)) {
@@ -194,6 +191,108 @@
 			});
 			model.setProperties(properties);
 			return model;
+		};
+	};
+
+	/**
+	 * Base Collection implementation.
+	 */
+	function Collection() {
+		// TODO: Hide self.values, use wrapper push, pop, etc.
+		var self = this;
+
+		self.url = null;
+		self.model = null;
+		self.values = ko.observableArray([]);
+
+		self.sortBy = ko.observable();
+		self.sortBy.subscribe(function() {
+			self.sort();
+		});
+
+		self.length = ko.computed(function() {
+			return self.values().length;
+		});
+
+		/**
+		 * Retrieves a model from this Collection by index.
+		 * @param index
+		 */
+		self.at = function(index) {
+			return self.values()[index];
+		};
+
+		/**
+		 * Retrieves a model from this Collection by id.
+		 * @param id
+		 */
+		self.get = function(id) {
+			return _.find(self.values(), function(model) {
+				return model.id && model.id() === id;
+			});
+		};
+
+		/**
+		 * Converts this Collection and its Models into plain objects.
+		 */
+		self.toJS = function() {
+			return _.map(self.values(), function(model) {
+				return model.toJS();
+			});
+		};
+
+		/**
+		 * Sorts this Collection.
+		 */
+		self.sort = function() {
+			var sortProperty = self.sortBy();
+
+			if (_.isString(sortProperty)) {
+				self.values.sort(function(a, b) {
+					var av = a[sortProperty],
+						bv = b[sortProperty];
+
+					return av === bv ? 0 : (av < bv ? -1 : 1);
+				});
+			} else if (_.isFunction(sortProperty)) {
+				self.values.sort(sortProperty);
+			}
+		};
+
+		self.fetch = function() {
+		};
+	}
+
+	/**
+	 * Creates a new Collection constructor.
+	 * @param props the properties used by the new Collection
+	 * @returns a new Collection constructor
+	 */
+	Collection.extend = function(props) {
+		var settableProperties = ['url', 'model', 'sortBy'];
+
+		return function(values) {
+			var coll = new Collection();
+
+			_.each(props, function(val, key) {
+				if (_.contains(settableProperties, key)) {
+					if (ko.isObservable(coll[key])) {
+						coll[key](ko.isObservable(val) ? val() : val);
+					} else {
+						coll[key] = ko.isObservable(val) ? val() : val;
+					}
+				}
+			});
+
+			if (_.isArray(values)) {
+				coll.values(values);
+			}
+
+			if (!_.isUndefined(coll.sortBy())) {
+				coll.sort();
+			}
+
+			return coll;
 		};
 	};
 
@@ -428,6 +527,7 @@
 	return {
 		Notifications: Notifications,
 		Model: Model,
+		Collection: Collection,
 		App: App
 	};
 }));
