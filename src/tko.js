@@ -198,16 +198,23 @@
 	 * Base Collection implementation.
 	 */
 	function Collection() {
-		// TODO: Hide self.values, use wrapper push, pop, etc.
-		var self = this;
+		var self = this,
+			valueSubscription;
 
 		self.url = null;
 		self.model = null;
 		self.values = ko.observableArray([]);
 
+		function reSort() {
+			valueSubscription.dispose();
+			self.sort();
+			valueSubscription = self.values.subscribe(reSort);
+		}
+		valueSubscription = self.values.subscribe(reSort);
+
 		self.sortBy = ko.observable();
 		self.sortBy.subscribe(function() {
-			self.sort();
+			reSort();
 		});
 
 		self.length = ko.computed(function() {
@@ -285,11 +292,12 @@
 			});
 
 			if (_.isArray(values)) {
-				coll.values(values);
-			}
-
-			if (!_.isUndefined(coll.sortBy())) {
-				coll.sort();
+				coll.values(_.map(values, function(value) {
+					if (value instanceof Model) {
+						return value;
+					}
+					return _.clone(value);
+				}));
 			}
 
 			return coll;

@@ -376,28 +376,35 @@
 		equal(people.length(), 0, 'new collections do not affect existing Collections');
 		equal(people2.values().length, 3, 'collection initialized with values has correct length');
 		equal(people2.length(), 3, 'collection initialized with values has correct length');
+
 		deepEqual(people2.at(0), personList[0], 'collection members can be retrieved by index');
 		deepEqual(people2.at(1), personList[1], 'collection members can be retrieved by index');
 		deepEqual(people2.at(2), personList[2], 'collection members can be retrieved by index');
+
 		ok(_.isUndefined(people2.at(3)), 'collection members can be retrieved by index');
 		deepEqual(people2.get(11), personList[0], 'collection members can be retrieved by id');
 		deepEqual(people2.get(22), personList[1], 'collection members can be retrieved by id');
 		deepEqual(people2.get(33), personList[2], 'collection members can be retrieved by id');
 		ok(_.isUndefined(people2.get(0)), 'collection members can be retrieved by id');
+
 		deepEqual(people2.toJS(), rawPersonList, 'collections can be converted to plain objects');
 	});
 
 	test('sorting', function() {
-		var sortedPeople = new SortedPeople(personList);
+		var sortedPeople = new SortedPeople(personList),
+			newPerson;
+
 		ok(_.isUndefined(sortedPeople.foo), 'only certain properties can be set');
 		equal(sortedPeople.length(), 3, 'collection initialized with values has correct length');
 		deepEqual(sortedPeople.at(0), personList[2], 'collections can be sorted initially');
 		deepEqual(sortedPeople.at(1), personList[0], 'collections can be sorted initially');
 		deepEqual(sortedPeople.at(2), personList[1], 'collections can be sorted initially');
+
 		sortedPeople.sortBy('last');
 		deepEqual(sortedPeople.at(0), personList[0], 'collections can be re-sorted');
 		deepEqual(sortedPeople.at(1), personList[1], 'collections can be re-sorted');
 		deepEqual(sortedPeople.at(2), personList[2], 'collections can be re-sorted');
+
 		sortedPeople.sortBy(function(a, b) {
 			var av = a.full(),
 				bv = b.full();
@@ -407,5 +414,12 @@
 		deepEqual(sortedPeople.at(0), personList[2], 'collections can be sorted using custom comparators');
 		deepEqual(sortedPeople.at(1), personList[0], 'collections can be sorted using custom comparators');
 		deepEqual(sortedPeople.at(2), personList[1], 'collections can be sorted using custom comparators');
+		
+		newPerson = new Person({id: 44, first: 'John', last: 'Aaa'});
+		sortedPeople.values.push(newPerson);
+		deepEqual(sortedPeople.at(0), newPerson, 'collections maintain sort order when models are added');
+		deepEqual(sortedPeople.at(1), personList[2], 'collections maintain sort order when models are added');
+		deepEqual(sortedPeople.at(2), personList[0], 'collections maintain sort order when models are added');
+		deepEqual(sortedPeople.at(3), personList[1], 'collections maintain sort order when models are added');
 	});
 }(window));
