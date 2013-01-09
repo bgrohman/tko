@@ -212,6 +212,12 @@
 		}
 		valueSubscription = self.values.subscribe(reSort);
 
+		function silently(f) {
+			valueSubscription.dispose();
+			f.call(self);
+			valueSubscription = self.values.subscribe(reSort);
+		}
+
 		self.sortBy = ko.observable();
 		self.sortBy.subscribe(function() {
 			reSort();
@@ -266,7 +272,31 @@
 			}
 		};
 
+		/**
+		 * Populates this Collection with new Models representing the items 
+		 * returned from this Collection's url.
+		 */
 		self.fetch = function() {
+			var request;
+
+			request = $.ajax({
+				type: 'GET',
+				url: self.url,
+				cache: false
+			});
+
+			request.done(function(data) {
+				_.each(data, function(item) {
+					silently(function() {
+						var model = new self.model(item);
+						self.values.push(model);
+					});
+				});
+
+				reSort();
+			});
+
+			return request;
 		};
 	}
 
@@ -276,18 +306,16 @@
 	 * @returns a new Collection constructor
 	 */
 	Collection.extend = function(props) {
-		var settableProperties = ['url', 'model', 'sortBy'];
+		var validProps = ['url', 'model', 'sortBy'];
 
 		return function(values) {
 			var coll = new Collection();
 
-			_.each(props, function(val, key) {
-				if (_.contains(settableProperties, key)) {
-					if (ko.isObservable(coll[key])) {
-						coll[key](ko.isObservable(val) ? val() : val);
-					} else {
-						coll[key] = ko.isObservable(val) ? val() : val;
-					}
+			_.each(_.pick(props, validProps), function(val, key) {
+				if (ko.isObservable(coll[key])) {
+					coll[key](ko.isObservable(val) ? val() : val);
+				} else {
+					coll[key] = ko.isObservable(val) ? val() : val;
 				}
 			});
 

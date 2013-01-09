@@ -60,6 +60,12 @@
 					});
 				});
 			}
+		} else if (options.url === '/people') {
+			if (options.type === 'GET') {
+				_.defer(function() {
+					deferred.resolve(rawPersonList);
+				});
+			}
 		}
 
 		return deferred;
@@ -394,6 +400,8 @@
 		var sortedPeople = new SortedPeople(personList),
 			newPerson;
 
+		equal(sortedPeople.model, Person, 'new sorted collections have the correct Model');
+		equal(sortedPeople.url, '/people', 'new sorted collections have the correct url');
 		ok(_.isUndefined(sortedPeople.foo), 'only certain properties can be set');
 		equal(sortedPeople.length(), 3, 'collection initialized with values has correct length');
 		deepEqual(sortedPeople.at(0), personList[2], 'collections can be sorted initially');
@@ -421,5 +429,31 @@
 		deepEqual(sortedPeople.at(1), personList[2], 'collections maintain sort order when models are added');
 		deepEqual(sortedPeople.at(2), personList[0], 'collections maintain sort order when models are added');
 		deepEqual(sortedPeople.at(3), personList[1], 'collections maintain sort order when models are added');
+	});
+
+	asyncTest('fetching a collection', function() {
+		var people = new People();
+		equal(people.length(), 0, 'new collections are empty');
+
+		people.fetch().done(function() {
+			equal(people.length(), 3, 'fetching a collection sets the proper length');
+			deepEqual(people.at(0), personList[0], 'fetching a collection creates the models');
+			deepEqual(people.at(1), personList[1], 'fetching a collection creates the models');
+			deepEqual(people.at(2), personList[2], 'fetching a collection creates the models');
+			start();
+		});
+	});
+
+	asyncTest('fetching a sorted collection', function() {
+		var people = new SortedPeople();
+		equal(people.length(), 0, 'new collections are empty');
+
+		people.fetch().done(function() {
+			equal(people.length(), 3, 'fetching a collection sets the proper length');
+			deepEqual(people.at(0), personList[2], 'fetching a collection uses the correct sort order');
+			deepEqual(people.at(1), personList[0], 'fetching a collection uses the correct sort order');
+			deepEqual(people.at(2), personList[1], 'fetching a collection uses the correct sort order');
+			start();
+		});
 	});
 }(window));
