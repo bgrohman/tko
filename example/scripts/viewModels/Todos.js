@@ -20,7 +20,6 @@ define(
 
 			self.view = view;
 			self.todos = new TodoList(rawTodos);
-			console.log('todo list', self.todos);
 
 			self.form = {
 				label: ko.observable()
