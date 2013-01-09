@@ -371,6 +371,7 @@
 	test('basics', function() {
 		var people = new People(),
 			people2,
+			people3,
 			sortedPeople;
 
 		equal(people.model, Person, 'new collections have the correct Model');
@@ -380,8 +381,8 @@
 
 		people2 = new People(personList);
 		equal(people.length(), 0, 'new collections do not affect existing Collections');
-		equal(people2.values().length, 3, 'collection initialized with values has correct length');
-		equal(people2.length(), 3, 'collection initialized with values has correct length');
+		equal(people2.values().length, 3, 'collection initialized with model values has correct length');
+		equal(people2.length(), 3, 'collection initialized with model values has correct length');
 
 		deepEqual(people2.at(0), personList[0], 'collection members can be retrieved by index');
 		deepEqual(people2.at(1), personList[1], 'collection members can be retrieved by index');
@@ -394,6 +395,13 @@
 		ok(_.isUndefined(people2.get(0)), 'collection members can be retrieved by id');
 
 		deepEqual(people2.toJS(), rawPersonList, 'collections can be converted to plain objects');
+
+		people3 = new People(rawPersonList);
+		equal(people3.values().length, 3, 'collection initialized with values has correct length');
+		equal(people3.length(), 3, 'collection initialized with values has correct length');
+		deepEqual(people3.at(0), personList[0], 'collection members can be retrieved by index');
+		deepEqual(people3.at(1), personList[1], 'collection members can be retrieved by index');
+		deepEqual(people3.at(2), personList[2], 'collection members can be retrieved by index');
 	});
 
 	test('sorting', function() {
@@ -402,7 +410,7 @@
 
 		equal(sortedPeople.model, Person, 'new sorted collections have the correct Model');
 		equal(sortedPeople.url, '/people', 'new sorted collections have the correct url');
-		ok(_.isUndefined(sortedPeople.foo), 'only certain properties can be set');
+		equal(sortedPeople.foo, 'bar', 'only certain properties can be set');
 		equal(sortedPeople.length(), 3, 'collection initialized with values has correct length');
 		deepEqual(sortedPeople.at(0), personList[2], 'collections can be sorted initially');
 		deepEqual(sortedPeople.at(1), personList[0], 'collections can be sorted initially');

@@ -206,9 +206,7 @@
 		self.values = ko.observableArray([]);
 
 		function reSort() {
-			valueSubscription.dispose();
 			self.sort();
-			valueSubscription = self.values.subscribe(reSort);
 		}
 		valueSubscription = self.values.subscribe(reSort);
 
@@ -220,7 +218,7 @@
 
 		self.sortBy = ko.observable();
 		self.sortBy.subscribe(function() {
-			reSort();
+			self.sort();
 		});
 
 		self.length = ko.computed(function() {
@@ -258,18 +256,22 @@
 		 * Sorts this Collection.
 		 */
 		self.sort = function() {
-			var sortProperty = self.sortBy();
+			silently(function() {
+				var sortProperty = self.sortBy();
 
-			if (_.isString(sortProperty)) {
-				self.values.sort(function(a, b) {
-					var av = a[sortProperty],
-						bv = b[sortProperty];
+				if (_.isString(sortProperty)) {
+					self.values().sort(function(a, b) {
+						var av = ko.toJS(a[sortProperty]),
+							bv = ko.toJS(b[sortProperty]);
 
-					return av === bv ? 0 : (av < bv ? -1 : 1);
-				});
-			} else if (_.isFunction(sortProperty)) {
-				self.values.sort(sortProperty);
-			}
+						return av > bv ? 1 : -1;
+					});
+				} else if (_.isFunction(sortProperty)) {
+					self.values().sort(sortProperty);
+				}
+
+				self.values.valueHasMutated();
+			});
 		};
 
 		/**
@@ -293,7 +295,7 @@
 					});
 				});
 
-				reSort();
+				self.sort();
 			});
 
 			return request;
@@ -306,12 +308,12 @@
 	 * @returns a new Collection constructor
 	 */
 	Collection.extend = function(props) {
-		var validProps = ['url', 'model', 'sortBy'];
+		var restrictedProps = ['length'];
 
 		return function(values) {
 			var coll = new Collection();
 
-			_.each(_.pick(props, validProps), function(val, key) {
+			_.each(_.omit(props, restrictedProps), function(val, key) {
 				if (ko.isObservable(coll[key])) {
 					coll[key](ko.isObservable(val) ? val() : val);
 				} else {
@@ -323,7 +325,12 @@
 				coll.values(_.map(values, function(value) {
 					if (value instanceof Model) {
 						return value;
+					} 
+					
+					if (coll.model) {
+						return new coll.model(value);
 					}
+
 					return _.clone(value);
 				}));
 			}

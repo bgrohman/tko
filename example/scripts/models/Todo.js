@@ -1,4 +1,4 @@
-define(['underscore', 'knockout', 'tko'], function(underscore, ko, tko) {
+define(['underscore', 'knockout', 'tko'], function(_, ko, tko) {
 	"use strict";
 
 	return tko.Model.extend({
