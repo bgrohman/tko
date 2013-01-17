@@ -12,14 +12,11 @@ define(
 
 		return function Todos(app) {
 			var self = this,
-				resorting = false,
-				rawTodos = [
-					{label: 'Take out the trash', priority: 1},
-					{label: 'Walk the dog', priority: 2}
-				];
+				resorting = false;
 
 			self.view = view;
-			self.todos = new TodoList(rawTodos);
+			self.todos = new TodoList();
+			self.todos.fetch();
 
 			self.form = {
 				label: ko.observable()
@@ -39,6 +36,8 @@ define(
 				_.each(self.todos.values(), function(t, i) {
 					t.priority(i + 1);
 				});
+
+				todo.destroy();
 			};
 
 			self.add = function() {
@@ -47,7 +46,9 @@ define(
 					priority: self.todos.getHighestPriority() + 1
 				});
 				self.todos.values.push(t);
-				t.save();
+				t.save().done(function() {
+					console.log('new todo', ko.toJS(t));
+				});
 
 				app.notify('success', '"' + t.label() + '" added.', 5000);
 				self.form.label('');

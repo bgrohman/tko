@@ -275,6 +275,13 @@
 		};
 
 		/**
+		 * Saves each model in this Collection.
+		 */
+		self.saveAll = function() {
+			// TODO
+		};
+
+		/**
 		 * Populates this Collection with new Models representing the items 
 		 * returned from this Collection's url.
 		 */

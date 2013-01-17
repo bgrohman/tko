@@ -1,4 +1,4 @@
-/*! tko - v0.2.0 - 2013-01-08
+/*! tko - v0.2.0 - 2013-01-16
 * https://github.com/bgrohman/tko
 * Copyright (c) 2013 Bryan Grohman; Licensed MIT */
 
@@ -276,6 +276,13 @@
 
 				self.values.valueHasMutated();
 			});
+		};
+
+		/**
+		 * Saves each model in this Collection.
+		 */
+		self.saveAll = function() {
+			// TODO
 		};
 
 		/**

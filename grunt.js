@@ -25,6 +25,10 @@ module.exports = function(grunt) {
 			current: {
 				src: ['<banner:meta.banner>', 'src/tko.js'],
 				dest: 'dist/tko-<%= meta.version %>.js'
+			},
+			example: {
+				src: ['<banner:meta.banner>', 'src/tko.js'],
+				dest: 'example/example-app/resources/public/scripts/lib/tko-latest.js'
 			}
 		},
 		min: {

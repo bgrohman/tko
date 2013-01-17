@@ -8,8 +8,13 @@ define(['underscore', 'tko', 'models/Todo'], function(_, tko, Todo) {
 
 		getHighestPriority: function() {
 			var priorities = _.pluck(_.map(this.values(), function(t) { return t.toJS(); }), 'priority');
-			priorities.sort();
-			return priorities[priorities.length - 1];
+
+			if (!_.isEmpty(priorities)) {
+				priorities.sort();
+				return priorities[priorities.length - 1];
+			}
+
+			return 0;
 		},
 
 		incrementPriority: function(todo) {
@@ -27,6 +32,7 @@ define(['underscore', 'tko', 'models/Todo'], function(_, tko, Todo) {
 
 				todo.priority(currentPriority - 1);
 				this.values.valueHasMutated();
+				this.saveAll();
 			}
 		},
 
@@ -45,6 +51,7 @@ define(['underscore', 'tko', 'models/Todo'], function(_, tko, Todo) {
 
 				todo.priority(currentPriority + 1);
 				this.values.valueHasMutated();
+				this.saveAll();
 			}
 		}
 	});
