@@ -65,6 +65,10 @@
 				_.defer(function() {
 					deferred.resolve(rawPersonList);
 				});
+			} else if (options.type === 'POST') {
+				_.defer(function() {
+					deferred.resolve({});
+				});
 			}
 		}
 

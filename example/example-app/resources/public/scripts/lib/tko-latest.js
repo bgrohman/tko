@@ -1,4 +1,4 @@
-/*! tko - v0.2.0 - 2013-01-16
+/*! tko - v0.2.1 - 2013-01-21
 * https://github.com/bgrohman/tko
 * Copyright (c) 2013 Bryan Grohman; Licensed MIT */
 
@@ -282,7 +282,21 @@
 		 * Saves each model in this Collection.
 		 */
 		self.saveAll = function() {
-			// TODO
+			var request,
+				jsonData;
+
+			jsonData = JSON.stringify(self.toJS());
+
+			request = $.ajax({
+				type: 'POST',
+				url: self.url,
+				cache: false,
+				contentType: 'application/json; charset=utf-8',
+				processData: false,
+				data: jsonData
+			});
+
+			return request;
 		};
 
 		/**
@@ -290,9 +304,7 @@
 		 * returned from this Collection's url.
 		 */
 		self.fetch = function() {
-			var request;
-
-			request = $.ajax({
+			var request = $.ajax({
 				type: 'GET',
 				url: self.url,
 				cache: false

@@ -278,7 +278,21 @@
 		 * Saves each model in this Collection.
 		 */
 		self.saveAll = function() {
-			// TODO
+			var request,
+				jsonData;
+
+			jsonData = JSON.stringify(self.toJS());
+
+			request = $.ajax({
+				type: 'POST',
+				url: self.url,
+				cache: false,
+				contentType: 'application/json; charset=utf-8',
+				processData: false,
+				data: jsonData
+			});
+
+			return request;
 		};
 
 		/**
@@ -286,9 +300,7 @@
 		 * returned from this Collection's url.
 		 */
 		self.fetch = function() {
-			var request;
-
-			request = $.ajax({
+			var request = $.ajax({
 				type: 'GET',
 				url: self.url,
 				cache: false

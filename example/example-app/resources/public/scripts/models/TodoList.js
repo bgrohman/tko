@@ -32,7 +32,10 @@ define(['underscore', 'tko', 'models/Todo'], function(_, tko, Todo) {
 
 				todo.priority(currentPriority - 1);
 				this.values.valueHasMutated();
-				this.saveAll();
+
+				this.saveAll().done(function() {
+					console.log('all todos saved');
+				});
 			}
 		},
 
@@ -51,7 +54,10 @@ define(['underscore', 'tko', 'models/Todo'], function(_, tko, Todo) {
 
 				todo.priority(currentPriority + 1);
 				this.values.valueHasMutated();
-				this.saveAll();
+
+				this.saveAll().done(function() {
+					console.log('all todos saved');
+				});
 			}
 		}
 	});
