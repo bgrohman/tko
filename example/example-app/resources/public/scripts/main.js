@@ -1,34 +1,34 @@
 (function(globals) {
-	"use strict";
+    "use strict";
 
-	globals.App.requireConfig();
+    globals.App.requireConfig();
 
-	require(
-		[
-			'tko', 
-			'knockout', 
-			'viewModels/HelloWorld', 
-			'viewModels/Home', 
-			'viewModels/Todos'
-		], 
-		
-		function(tko, ko, HelloWorld, Home, Todos) {
-			var app = new tko.App({
-				pages: [
-					{name: 'Home', route: 'home', ViewModel: Home, isDefault: true},
-					{name: 'Hello', route: 'hello', ViewModel: HelloWorld},
-					{name: 'Todos', route: 'todos', ViewModel: Todos}
-				],
-				routes: {
-					'foo/:bar': function(bar) {
-						console.log('foo', bar);
-					}
-				}
-			});
+    require(
+        [
+            'tko', 
+            'knockout', 
+            'viewModels/HelloWorld', 
+            'viewModels/Home', 
+            'viewModels/Todos'
+        ], 
+        
+        function(tko, ko, HelloWorld, Home, Todos) {
+            var app = new tko.App({
+                pages: [
+                    {name: 'Home', route: 'home', ViewModel: Home, isDefault: true},
+                    {name: 'Hello', route: 'hello', ViewModel: HelloWorld},
+                    {name: 'Todos', route: 'todos', ViewModel: Todos}
+                ],
+                routes: {
+                    'foo/:bar': function(bar) {
+                        console.log('foo', bar);
+                    }
+                }
+            });
 
-			app.subscribe('app.initialized', function() {
-				console.log('initialized');
-			});
-		}
-	);
+            app.subscribe('app.initialized', function() {
+                console.log('initialized');
+            });
+        }
+    );
 }(this));

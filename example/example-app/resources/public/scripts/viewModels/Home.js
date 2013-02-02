@@ -1,8 +1,8 @@
 define(['knockout', 'text!views/home.html'], function(ko, view) {
-	"use strict";
+    "use strict";
 
-	return function Home(app) {
-		var self = this;
-		self.view = view;
-	};
+    return function Home(app) {
+        var self = this;
+        self.view = view;
+    };
 });

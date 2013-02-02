@@ -1,3 +1,8 @@
+//TODO: Nested Collections
+//
+//TODO: Handle brand/default page better. Maybe use app name as brand? Have it 
+//also be a link to the default page?
+
 (function(root, factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
