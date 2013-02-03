@@ -1,6 +1,6 @@
 tko
 ===
-tko is a framework for writing modular JavaScript with models, collections, routing, and pub/sub. If you like Backbone's models and collections but don't want to give up Knockout's two-way data-binding, then tko is for you.
+tko is a framework for writing modular JavaScript with models, collections, routing, pub/sub, notifications, and client-side storage. If you like Backbone's models and collections but don't want to give up Knockout's two-way data-binding, then tko is for you.
 
 Example
 -------
