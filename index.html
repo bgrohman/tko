@@ -34,7 +34,39 @@
 
 <h2>Example</h2>
 
-<p>The included <a href="https://github.com/bgrohman/tko/tree/master/example/example-app">example</a> shows tko's Application, Model, and Collection objects used to build a todo list application. </p>
+<p>The included <a href="https://github.com/bgrohman/tko/tree/master/example/example-app">example</a> shows tko's Application, Model, and Collection objects used to build a todo list application. Check out the <a href="https://github.com/bgrohman/tko/blob/master/test/tko-test.js">unit tests</a> for more detail.</p>
+
+<h3>Creating a Model</h3>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">Person</span> <span class="o">=</span> <span class="nx">tko</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+    <span class="nx">urlRoot</span><span class="o">:</span> <span class="s1">'/person'</span><span class="p">,</span>
+    <span class="nx">first</span><span class="o">:</span> <span class="nx">ko</span><span class="p">.</span><span class="nx">observable</span><span class="p">(),</span>
+    <span class="nx">last</span><span class="o">:</span> <span class="nx">ko</span><span class="p">.</span><span class="nx">observable</span><span class="p">(),</span>
+    <span class="nx">full</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">first</span><span class="p">()</span> <span class="o">+</span> <span class="s1">' '</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">last</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+
+<span class="kd">var</span> <span class="nx">neil</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Person</span><span class="p">({</span>
+    <span class="nx">first</span><span class="o">:</span> <span class="s1">'Neil'</span><span class="p">,</span>
+    <span class="nx">last</span><span class="o">:</span> <span class="s1">'Stephenson'</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>Creating a Collection</h3>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">People</span> <span class="o">=</span> <span class="nx">tko</span><span class="p">.</span><span class="nx">Collection</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+    <span class="nx">model</span><span class="o">:</span> <span class="nx">Person</span><span class="p">,</span>
+    <span class="nx">url</span><span class="o">:</span> <span class="s1">'/people'</span><span class="p">,</span>
+    <span class="nx">sortBy</span><span class="o">:</span> <span class="s1">'first'</span>
+<span class="p">});</span>
+
+<span class="kd">var</span> <span class="nx">authors</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">People</span><span class="p">([</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">first</span><span class="o">:</span> <span class="s1">'Neil'</span><span class="p">,</span> <span class="nx">last</span><span class="o">:</span> <span class="s1">'Stephenson'</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">first</span><span class="o">:</span> <span class="s1">'J. R. R.'</span><span class="p">,</span> <span class="nx">last</span><span class="o">:</span> <span class="s1">'Tolkien'</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span> <span class="mi">3</span><span class="p">,</span> <span class="nx">first</span><span class="o">:</span> <span class="s1">'Patrick'</span><span class="p">,</span> <span class="nx">last</span><span class="o">:</span> <span class="s1">'Rothfuss'</span><span class="p">}</span>
+<span class="p">]);</span>
+</pre></div>
 
 <h2>Dependencies</h2>
 
