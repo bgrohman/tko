@@ -1,5 +1,3 @@
-//TODO: Nested Collections
-//
 //TODO: Handle brand/default page better. Maybe use app name as brand? Have it 
 //also be a link to the default page?
 
@@ -13,24 +11,25 @@
 }(this, function(_, ko, $, amplify, routie) {
     "use strict";
 
-    var templates = {
-        'nav': [
-            '<div class="navbar">',
-                '<div class="navbar-inner">',
-                    '<!-- ko if: defaultPage -->',
-                        '<a class="brand" data-bind="text: defaultPage().name, attr: {href: defaultPage().href}"></a>',
-                    '<!-- /ko -->',
-                    '<ul class="nav" data-bind="foreach: pages">',
-                        '<!-- ko ifnot: isDefault -->',
-                            '<li data-bind="if: !isDefault(), css: {active: visible}">',
-                                '<a data-bind="text: name, attr: {href: href}"></a>',
-                            '</li>',
+    var tko, 
+        templates = {
+            'nav': [
+                '<div class="navbar">',
+                    '<div class="navbar-inner">',
+                        '<!-- ko if: defaultPage -->',
+                            '<a class="brand" data-bind="text: defaultPage().name, attr: {href: defaultPage().href}"></a>',
                         '<!-- /ko -->',
-                    '</ul>',
-                '</div>',
-            '</div>'
-        ].join('')
-    };
+                        '<ul class="nav" data-bind="foreach: pages">',
+                            '<!-- ko ifnot: isDefault -->',
+                                '<li data-bind="if: !isDefault(), css: {active: visible}">',
+                                    '<a data-bind="text: name, attr: {href: href}"></a>',
+                                '</li>',
+                            '<!-- /ko -->',
+                        '</ul>',
+                    '</div>',
+                '</div>'
+            ].join('')
+        };
 
     /**
      * Returns true if the given function is a tko Model constructor.
@@ -39,6 +38,15 @@
      */
     function isModelConstructor(f) {
         return _.isFunction(f) && f.tko && f.tko.modelConstructor;
+    }
+
+    /**
+     * Returns true if the given function is a tko Collection constructor.
+     * @param f
+     * @returns
+     */
+    function isCollectionConstructor(f) {
+        return _.isFunction(f) && f.tko && f.tko.collectionConstructor;
     }
 
     /**
@@ -52,19 +60,63 @@
         self.id = null;
 
         /**
+         * Sets a Model property on this Model.
+         * @param from
+         * @param key
+         * @param modelDef
+         */
+        function setModelProperty(from, key, modelDef) {
+            if (from[key] instanceof Model) {
+                self[key](from[key]);
+            } else {
+                self[key](new modelDef.constructor(from[key]));
+            }
+        }
+
+        /**
+         * Sets a Collection property on this Model.
+         * @param from
+         * @param key
+         * @param collectionDef
+         */
+        function setCollectionProperty(from, key, collectionDef) {
+            if (from[key] instanceof tko.Collection) {
+                self[key](from[key]);
+            } else {
+                self[key](new collectionDef.constructor(from[key]));
+            }
+        }
+
+        /**
+         * Sets a property on this Model.
+         * @param from
+         * @param key
+         */
+        function setProperty(from, key) {
+            var selfVal = self[key],
+                fromVal;
+
+            if (ko.isObservable(selfVal)) {
+                fromVal = from[key];
+
+                if (!_.isUndefined(fromVal)) {
+                    selfVal(fromVal);
+                }
+            }
+        }
+
+        /**
          * Copies the properties of the from object to this Model. Only this
          * Model's observables will be set. The id will be set if it has not
          * already been set.
          * @param from the object from which to copy properties
          */
         self.setProperties = function(from) {
-            var selfVal,
-                fromVal;
-
             if (!_.isUndefined(from) && !_.isNull(from)) {
 
                 _.each(_.keys(self), function(key) {
-                    var modelDef;
+                    var modelDef,
+                        collectionDef;
 
                     if (key !== 'id') {
                         modelDef = _.find(self._tko_.modelKeys, function(def) {
@@ -72,20 +124,16 @@
                         });
 
                         if (modelDef) {
-                            if (from[key] instanceof Model) {
-                                self[key](from[key]);
-                            } else {
-                                self[key](new modelDef.constructor(from[key]));
-                            }
+                            setModelProperty(from, key, modelDef);
                         } else {
-                            selfVal = self[key];
+                            collectionDef = _.find(self._tko_.collectionKeys, function(def) {
+                                return def.key === key;
+                            });
 
-                            if (ko.isObservable(selfVal)) {
-                                fromVal = from[key];
-
-                                if (!_.isUndefined(fromVal)) {
-                                    selfVal(fromVal);
-                                }
+                            if (collectionDef) {
+                                setCollectionProperty(from, key, collectionDef);
+                            } else {
+                                setProperty(from, key);
                             }
                         }
                     }
@@ -114,8 +162,9 @@
                     selfVal = self[key];
 
                     if (ko.isObservable(selfVal)) {
-                        if (selfVal() instanceof Model) {
-                            cloned[key] = selfVal().clone();
+                        if (selfVal() instanceof Model ||
+                            selfVal() instanceof tko.Collection) {
+                            cloned[key] = ko.observable(selfVal().clone());
                         } else {
                             cloned[key] = ko.observable(selfVal());
                         }
@@ -137,7 +186,8 @@
 
             _.each(_.keys(self), function(key) {
                 if (ko.isObservable(self[key])) {
-                    if (self[key]() instanceof Model) {
+                    if (self[key]() instanceof Model ||
+                        self[key]() instanceof tko.Collection) {
                         obj[key] = self[key]().toJS();
                     } else {
                         obj[key] = self[key]();
@@ -243,7 +293,8 @@
             var model = new Model();
 
             model._tko_ = {
-                modelKeys: []
+                modelKeys: [],
+                collectionKeys: []
             };
 
             _.each(props, function(val, key) {
@@ -252,6 +303,12 @@
                 } else if (isModelConstructor(val)) {
                     model[key] = ko.observable();
                     model._tko_.modelKeys.push({
+                        key: key,
+                        constructor: val
+                    });
+                } else if (isCollectionConstructor(val)) {
+                    model[key] = ko.observable();
+                    model._tko_.collectionKeys.push({
                         key: key,
                         constructor: val
                     });
@@ -331,6 +388,30 @@
         };
 
         /**
+         * Clones this Collection.
+         * @returns a cloned collection
+         */
+        self.clone = function() {
+            var coll = new Collection(),
+                newValues;
+
+            newValues = _.map(self.values(), function(val) {
+                if (val instanceof Model ||
+                    val instanceof Collection) {
+                    return val.clone();
+                }
+                return val;
+            });
+
+            coll.url = self.url;
+            coll.model = self.model;
+            coll.sortBy(self.sortBy());
+            coll.values(newValues);
+
+            return coll;
+        };
+
+        /**
          * Sorts this Collection.
          */
         self.sort = function() {
@@ -407,7 +488,7 @@
     Collection.extend = function(props) {
         var restrictedProps = ['length'];
 
-        return function(values) {
+        function constructor(values) {
             var coll = new Collection();
 
             _.each(_.omit(props, restrictedProps), function(val, key) {
@@ -433,7 +514,13 @@
             }
 
             return coll;
+        }
+
+        constructor.tko = {
+            collectionConstructor: true
         };
+
+        return constructor;
     };
 
     /**
@@ -664,10 +751,12 @@
         init();
     }
 
-    return {
+    tko = {
         Notifications: Notifications,
         Model: Model,
         Collection: Collection,
         App: App
     };
+
+    return tko;
 }));

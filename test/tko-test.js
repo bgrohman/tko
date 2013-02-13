@@ -15,7 +15,9 @@
         People,
         SortedPeople,
         personList,
-        rawPersonList;
+        rawPersonList,
+        Library,
+        BookCollection;
 
     $.ajax = function(options) {
         var deferred = $.Deferred(),
@@ -544,4 +546,95 @@
             start();
         });
     });
+
+    BookCollection = tko.Collection.extend({
+        model: Book,
+        url: '/books'
+    });
+
+    Library = tko.Model.extend({
+        url: '/library',
+        name: ko.observable(),
+        books: BookCollection
+    });
+
+    test('creating a model with a collection', function() {
+        var bookCollection1,
+            bookCollection2,
+            library1,
+            library2;
+
+        bookCollection1 = new BookCollection([
+            {
+                title: 'Snow Crash',
+                author: {
+                    first: 'Neil',
+                    last: 'Stephenson'
+                }
+            },
+            {
+                title: 'The Lord of the Rings',
+                author: {
+                    first: 'J. R. R.',
+                    last: 'Tolkien'
+                }
+            }
+        ]);
+
+        bookCollection2 = bookCollection1.clone();
+        deepEqual(bookCollection2.toJS(), bookCollection1.toJS(), 'cloning a collection');
+
+        library1 = new Library({
+            name: 'Central Library',
+            books: bookCollection1
+        });
+
+        deepEqual(library1.books().toJS(), [
+            {title: 'Snow Crash', author: {first: 'Neil', last: 'Stephenson'}},
+            {title: 'The Lord of the Rings', author: {first: 'J. R. R.', last: 'Tolkien'}}
+        ], 'model collection is created properly');
+
+        deepEqual(library1.toJS(), {
+            name: 'Central Library',
+            books: [
+                {title: 'Snow Crash', author: {first: 'Neil', last: 'Stephenson'}},
+                {title: 'The Lord of the Rings', author: {first: 'J. R. R.', last: 'Tolkien'}}
+            ]
+        }, 'model toJS includes collection');
+
+        library2 = new Library({
+            name: 'Library of Congress',
+            books: [
+                {
+                    title: 'Snow Crash',
+                    author: {
+                        first: 'Neil',
+                        last: 'Stephenson'
+                    }
+                },
+                {
+                    title: 'The Lord of the Rings',
+                    author: {
+                        first: 'J. R. R.',
+                        last: 'Tolkien'
+                    }
+                }
+            ]
+        });
+
+        deepEqual(library2.books().at(0).toJS(), {
+            title: 'Snow Crash',
+            author: {
+                first: 'Neil',
+                last: 'Stephenson'
+            }
+        }, 'model collection created from raw js works');
+
+        library2 = library1.clone();
+        deepEqual(library2.toJS(), library1.toJS(), 'cloning includes collection');
+
+        library2.books().at(0).title('Foo Crash');
+        equal(library1.books().at(0).title(), 'Snow Crash', 'cloning model clones the collection and the collection models');
+    });
+
 }(window));

@@ -4,7 +4,7 @@ module.exports = function(grunt) {
     // Project configuration.
     grunt.initConfig({
         meta: {
-            version: '0.2.2',
+            version: '0.3.0',
             banner: '/*! tko - v<%= meta.version %> - ' +
                     '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
                     '* https://github.com/bgrohman/tko\n' +
