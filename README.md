@@ -19,6 +19,9 @@ var neil = new Person({
     first: 'Neil',
     last: 'Stephenson'
 });
+
+neil.first('Bob');
+console.log(neil.toJS());
 ```
 ###Creating a Collection
 ```javascript
@@ -33,6 +36,26 @@ var authors = new People([
     {id: 2, first: 'J. R. R.', last: 'Tolkien'},
     {id: 3, first: 'Patrick', last: 'Rothfuss'}
 ]);
+
+console.log(authors.at(0).full());
+console.log(authors.get(3).full());
+```
+
+###Creating a Model with a Collection###
+```javascript
+var Group = tko.Model.extend({
+    urlRoot: '/group',
+    name: ko.observable(),
+    members: People
+});
+
+var group = new Group({
+    name: 'My Group',
+    members: authors
+});
+
+console.log(group.members().at(0));
+console.log(group.toJS());
 ```
 
 ##Dependencies
