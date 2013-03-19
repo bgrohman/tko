@@ -1,4 +1,4 @@
-/*! tko - v0.3.0 - 2013-02-13
+/*! tko - v0.3.1 - 2013-03-18
 * https://github.com/bgrohman/tko
 * Copyright (c) 2013 Bryan Grohman; Licensed MIT */
 
@@ -14,7 +14,7 @@
 
     var tko, 
         templates = {
-            'nav': [
+            nav: [
                 '<div class="navbar">',
                     '<div class="navbar-inner">',
                         '<!-- ko if: defaultPage -->',
@@ -588,9 +588,12 @@
     function App(def) {
         var self = this,
             initialized = false,
-            notifyTimeouts = {};
+            notifyTimeouts = {},
+            tkoConfig = _.defaults(def.tko || {}, {
+                useSimpleNavigation: false,
+                routingRoot: $('#root')
+            });
 
-        self.$root = $('#root');
         self.defaultPage = ko.observable();
         self.pages = [];
         self.navLinks = [];
@@ -676,7 +679,7 @@
             if (_.isArray(def.pages)) {
                 $pages = $('<div id="pages"></div>');
 
-                self.$root.append($pages);
+                tkoConfig.routingRoot.append($pages);
 
                 _.each(def.pages, function(page) {
                     var viewModel = new PageViewModel(self, page),
@@ -717,13 +720,13 @@
             var template = templates.nav,
                 $el = $(template);
 
-            self.$root.prepend($el);
+            tkoConfig.routingRoot.prepend($el);
         }
 
         function buildNotifications() {
             var $el = $(self.notifications.template);
             self.notifications.$element = $el;
-            self.$root.prepend($el);
+            tkoConfig.routingRoot.prepend($el);
         }
 
         function init() {
@@ -734,15 +737,22 @@
             });
 
             buildNotifications();
-            buildNav();
+
+            if (tkoConfig.useSimpleNavigation) {
+                buildNav();
+            }
+
             buildPages();
             buildRoutes();
 
             $(function() {
-                ko.applyBindings(self, self.$root.find('.navbar')[0]);
-                ko.applyBindings(self.notifications, self.$root.find('#notifications')[0]);
+                if (tkoConfig.useSimpleNavigation) {
+                    ko.applyBindings(self, tkoConfig.routingRoot.find('.navbar')[0]);
+                }
+
+                ko.applyBindings(self.notifications, tkoConfig.routingRoot.find('#notifications')[0]);
                 applyRoute();
-                self.$root.show();
+                tkoConfig.routingRoot.show();
 
                 initialized = true;
                 self.publish('app.initialized');

@@ -14,6 +14,9 @@
         
         function(tko, ko, HelloWorld, Home, Todos) {
             var app = new tko.App({
+                tko: {
+                    useSimpleNavigation: true
+                },
                 pages: [
                     {name: 'Home', route: 'home', ViewModel: Home, isDefault: true},
                     {name: 'Hello', route: 'hello', ViewModel: HelloWorld},

@@ -172,7 +172,10 @@
         }
 
         var app = new tko.App({
-            $root: $('#routing-root'),
+            tko: {
+                useSimpleNavigation: true,
+                routingRoot: $('#routing-root')
+            },
             pages: [
                 {name: 'hello', route: 'hello', ViewModel: VM1, isDefault: true},
                 {name: 'world', route: 'world', ViewModel: VM2}
