@@ -1,4 +1,4 @@
-/*! tko - v0.3.1 - 2013-03-18
+/*! tko - v0.3.1 - 2013-03-20
 * https://github.com/bgrohman/tko
 * Copyright (c) 2013 Bryan Grohman; Licensed MIT */
 
@@ -716,11 +716,34 @@
             }
         }
 
-        function buildNav() {
+        function buildSimpleNav() {
             var template = templates.nav,
                 $el = $(template);
 
             tkoConfig.routingRoot.prepend($el);
+        }
+
+        function buildCustomNav() {
+            var viewModel,
+                $navEl = $('<div class="tko-nav"></div>');
+
+            if (!_.isFunction(def.navigation)) {
+                return;
+            }
+
+            viewModel = new def.navigation(self);
+            self.navigation = viewModel;
+            $navEl.append(viewModel.view);
+            tkoConfig.routingRoot.prepend($navEl);
+            ko.applyBindings(viewModel, $navEl[0]);
+        }
+
+        function buildNavigation() {
+            if (tkoConfig.useSimpleNavigation) {
+                buildSimpleNav();
+            } else {
+                buildCustomNav();
+            }
         }
 
         function buildNotifications() {
@@ -731,19 +754,16 @@
 
         function init() {
             _.each(def, function(val, key) {
-                if (key !== 'pages' && key !== 'routes') {
+                if (key !== 'pages' && key !== 'routes' && key !== 'navigation') {
                     self[key] = val;
                 }
             });
 
             buildNotifications();
 
-            if (tkoConfig.useSimpleNavigation) {
-                buildNav();
-            }
-
             buildPages();
             buildRoutes();
+            buildNavigation();
 
             $(function() {
                 if (tkoConfig.useSimpleNavigation) {
