@@ -729,8 +729,8 @@
 
             viewModel = new def.navigation(self);
             $navEl.append(viewModel.view);
-            self.routingRoot.prepend($navEl);
-            ko.applyBindings(viewModel, $navEl);
+            tkoConfig.routingRoot.prepend($navEl);
+            ko.applyBindings(viewModel, $navEl[0]);
         }
 
         function buildNavigation() {

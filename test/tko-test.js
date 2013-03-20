@@ -217,6 +217,38 @@
         }, 250);
     });
 
+    asyncTest('custom navigation', function() {
+        function VM1(app) {
+            this.foo = ko.observable('foo');
+            this.view = '<p id="vm1" data-bind="text: foo"></p>';
+        }
+
+        function Nav(app) {
+            var self = this;
+            self.view = '<a href="#">Nav</a>';
+        }
+
+        var sub,
+            app;
+
+        app = new tko.App({
+            tko: {
+                routingRoot: $('#nav-routing-root')
+            },
+            navigation: Nav,
+            pages: [
+                {name: 'hello', route: 'hello', ViewModel: VM1, isDefault: true}
+            ]
+        });
+
+        sub = app.subscribe('app.initialized', function() {
+            ok($('.tko-nav'), 'tko custom nav element exists');
+            equal($('.tko-nav a:first').text(), 'Nav', 'nav markup exists');
+            start();
+            app.unsubscribe('app.initialized', sub);
+        });
+    });
+
     module('tko.Model');
 
     Person = tko.Model.extend({
