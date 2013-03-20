@@ -728,6 +728,7 @@
             }
 
             viewModel = new def.navigation(self);
+            self.navigation = viewModel;
             $navEl.append(viewModel.view);
             tkoConfig.routingRoot.prepend($navEl);
             ko.applyBindings(viewModel, $navEl[0]);

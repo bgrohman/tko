@@ -219,13 +219,19 @@
 
     asyncTest('custom navigation', function() {
         function VM1(app) {
-            this.foo = ko.observable('foo');
-            this.view = '<p id="vm1" data-bind="text: foo"></p>';
+            this.view = '<p>VM1</p>';
+        }
+
+        function VM2(app) {
+            this.view = '<p>VM2</p>';
         }
 
         function Nav(app) {
             var self = this;
-            self.view = '<a href="#">Nav</a>';
+
+            self.p1 = app.pages[0];
+            self.p2 = app.pages[1];
+            self.view = '<a href="#p1">p1</a><a href="#p2">p2</a>';
         }
 
         var sub,
@@ -237,14 +243,26 @@
             },
             navigation: Nav,
             pages: [
-                {name: 'hello', route: 'hello', ViewModel: VM1, isDefault: true}
+                {name: 'p1', route: 'p1', ViewModel: VM1, isDefault: true},
+                {name: 'p2', route: 'p2', ViewModel: VM2}
             ]
         });
 
         sub = app.subscribe('app.initialized', function() {
             ok($('.tko-nav'), 'tko custom nav element exists');
-            equal($('.tko-nav a:first').text(), 'Nav', 'nav markup exists');
-            start();
+            equal($('.tko-nav a:first').text(), 'p1', 'nav markup exists');
+            equal($('.tko-nav a:nth-child(2)').text(), 'p2', 'nav markup exists');
+
+            ok(app.navigation.p1, 'pages are accessible via navigation view model');
+
+            app.navigate('p2');
+            setTimeout(function() {
+                ok(!app.navigation.p1.visible(), 'page state is accessible via navigation view model');
+                ok(app.navigation.p2.visible(), 'page state is accessible via navigation view model');
+
+                start();
+            }, 250);
+
             app.unsubscribe('app.initialized', sub);
         });
     });
